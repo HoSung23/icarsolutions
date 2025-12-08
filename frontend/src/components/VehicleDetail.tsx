@@ -469,10 +469,6 @@ export default function VehicleDetail({ vehicleId }: VehicleDetailProps) {
                 src="/Visa_Logo.png" 
                 alt="Visa Cuotas" 
                 className="h-10 w-auto object-contain"
-                onError={(e) => {
-                  // Fallback si no existe la imagen
-                  e.currentTarget.style.display = 'none';
-                }}
               />
             </div>
             {vehicle.detalles ? (
