@@ -3,5 +3,16 @@
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "framework": "astro",
-  "devCommand": "npm run dev"
+  "devCommand": "npm run dev",
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    }
+  ]
 }
