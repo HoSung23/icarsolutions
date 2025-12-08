@@ -464,14 +464,18 @@ export default function VehicleDetail({ vehicleId }: VehicleDetailProps) {
                 </svg>
                 Detalles y Observaciones
               </div>
-              {/* Logo Visa Cuotas */}
+              {/* Logo Visa Cuotas - Usando URL de GitHub como respaldo temporal */}
               <img 
-                src="/Visa_Logo.png" 
+                src="https://raw.githubusercontent.com/HoSung23/icarsolutions/main/frontend/public/Visa_Logo.png" 
                 alt="Visa Cuotas" 
                 className="h-12 w-auto object-contain bg-white p-1 rounded"
                 onError={(e) => {
-                  console.error('Error cargando logo Visa');
-                  e.currentTarget.style.display = 'none';
+                  // Fallback a versión local cuando Vercel actualice el caché
+                  e.currentTarget.src = "/Visa_Logo.png";
+                  e.currentTarget.onerror = () => {
+                    console.error('Logo Visa no disponible');
+                    e.currentTarget.style.display = 'none';
+                  };
                 }}
               />
             </div>
