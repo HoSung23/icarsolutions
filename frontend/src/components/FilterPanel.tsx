@@ -7,10 +7,23 @@ export const FilterPanel: React.FC = () => {
   const { filters, setFilters } = useFilters();
   const [localFilters, setLocalFilters] = useState(filters);
   const [marcas, setMarcas] = useState<string[]>([]);
+  const [lineas, setLineas] = useState<string[]>([]);
 
   useEffect(() => {
     fetchMarcas();
   }, []);
+
+  useEffect(() => {
+    if (localFilters.marca) {
+      fetchLineasByMarca(localFilters.marca);
+    } else {
+      setLineas([]);
+      // Limpiar línea si no hay marca seleccionada
+      if (localFilters.linea) {
+        handleChange("linea", "");
+      }
+    }
+  }, [localFilters.marca]);
 
   const fetchMarcas = async () => {
     try {
@@ -31,6 +44,27 @@ export const FilterPanel: React.FC = () => {
     }
   };
 
+  const fetchLineasByMarca = async (marca: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("vehicles")
+        .select("linea")
+        .eq("marca", marca);
+
+      if (error) throw error;
+
+      // Extraer líneas únicas y ordenarlas
+      const uniqueLineas = Array.from(
+        new Set(data?.map((v) => v.linea).filter((l) => l && l.trim() !== ""))
+      ).sort();
+
+      setLineas(uniqueLineas);
+    } catch (error) {
+      console.error("Error cargando líneas:", error);
+      setLineas([]);
+    }
+  };
+
   const handleChange = (field: string, value: string) => {
     const newFilters = { ...localFilters, [field]: value };
     setLocalFilters(newFilters);
@@ -43,6 +77,7 @@ export const FilterPanel: React.FC = () => {
   const handleClearFilters = () => {
     const clearedFilters = {
       marca: "",
+      linea: "",
       minPrice: "",
       maxPrice: "",
       combustible: "",
@@ -52,6 +87,7 @@ export const FilterPanel: React.FC = () => {
     };
     setLocalFilters(clearedFilters);
     setFilters(clearedFilters);
+    setLineas([]);
   };
 
   return (
@@ -76,6 +112,27 @@ export const FilterPanel: React.FC = () => {
           ))}
         </select>
       </div>
+
+      {/* Línea/Modelo - Solo visible cuando hay una marca seleccionada */}
+      {localFilters.marca && lineas.length > 0 && (
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Línea/Modelo
+          </label>
+          <select
+            value={localFilters.linea}
+            onChange={(e) => handleChange("linea", e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Todas las líneas</option>
+            {lineas.map((linea) => (
+              <option key={linea} value={linea}>
+                {linea}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Rango de precio */}
       <div className="mb-4">

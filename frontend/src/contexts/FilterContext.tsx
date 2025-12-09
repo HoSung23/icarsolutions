@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState } from "react";
 
 export interface Filters {
   marca: string;
+  linea: string;
   minPrice: string;
   maxPrice: string;
   combustible: string;
@@ -22,6 +23,7 @@ export const FilterProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [filters, setFilters] = useState<Filters>({
     marca: "",
+    linea: "",
     minPrice: "",
     maxPrice: "",
     combustible: "",

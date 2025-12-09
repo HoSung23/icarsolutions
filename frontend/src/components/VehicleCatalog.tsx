@@ -5,6 +5,7 @@ import { useFilters } from "../contexts/FilterContext";
 interface Vehicle {
   id: string;
   marca: string;
+  linea: string;
   modelo_año: string;
   precio: number;
   estado: string;
@@ -51,6 +52,13 @@ export default function VehicleCatalog() {
     if (filters.marca) {
       filtered = filtered.filter((v) =>
         v.marca.toLowerCase().includes(filters.marca.toLowerCase())
+      );
+    }
+
+    // Filtro por línea/modelo
+    if (filters.linea) {
+      filtered = filtered.filter((v) =>
+        v.linea && v.linea.toLowerCase().includes(filters.linea.toLowerCase())
       );
     }
 
