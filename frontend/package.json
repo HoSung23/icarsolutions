@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "npx astro build",
+    "build": "node build.mjs",
     "preview": "astro preview",
     "astro": "astro"
   },
