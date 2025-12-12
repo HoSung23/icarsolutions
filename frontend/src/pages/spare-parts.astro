@@ -1,0 +1,38 @@
+---
+import Layout from "../layouts/Layout.astro";
+import SparePartsInventory from "../components/SparePartsInventory";
+---
+
+<Layout title="Gestión de Repuestos - iCarSolutions">
+  <div class="min-h-screen bg-gray-50">
+    <div class="max-w-7xl mx-auto py-6">
+      <SparePartsInventory client:load />
+    </div>
+  </div>
+</Layout>
+
+<script>
+  import { supabase } from "../utils/supabase";
+
+  async function checkAuth() {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      window.location.href = "/admin";
+      return;
+    }
+
+    const { data: userData } = await supabase
+      .from("users")
+      .select("rol")
+      .eq("id", user.id)
+      .single();
+
+    // Solo admin, superadmin, gerente y vendedor pueden acceder
+    if (!userData || !["admin", "superadmin", "gerente", "vendedor"].includes(userData.rol)) {
+      window.location.href = "/dashboard";
+    }
+  }
+
+  checkAuth();
+</script>

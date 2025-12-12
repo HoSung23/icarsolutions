@@ -3,7 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import { Hero } from "../components/Hero";
 import { BannerCarousel } from "../components/BannerCarousel";
 import { ServicesSection } from "../components/ServicesSection";
-import { CatalogSection } from "../components/CatalogSection";
+import { UnifiedCatalogSection } from "../components/UnifiedCatalogSection";
 ---
 
 <Layout title="iCarSolutions - Inicio">
@@ -17,9 +17,8 @@ import { CatalogSection } from "../components/CatalogSection";
   {/* Sección de servicios aliados */}
   <ServicesSection client:load />
 
-  {/* Catálogo de vehículos */}
+  {/* Catálogo unificado de vehículos y repuestos */}
   <div id="catalogo" class="max-w-7xl mx-auto px-4 py-12">
-    <h2 class="text-3xl font-bold mb-8">Nuestro Catálogo</h2>
-    <CatalogSection client:load />
+    <UnifiedCatalogSection client:load />
   </div>
 </Layout>

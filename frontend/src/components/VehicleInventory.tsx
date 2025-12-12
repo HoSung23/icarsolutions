@@ -23,6 +23,8 @@ const VehicleInventory: React.FC = () => {
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(null);
   const [showPriceModal, setShowPriceModal] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [showViewImagesModal, setShowViewImagesModal] = useState(false);
+  const [viewingVehicle, setViewingVehicle] = useState<Vehicle | null>(null);
   const [priceData, setPriceData] = useState({
     precio: "",
     descuento_porcentaje: "",
@@ -582,6 +584,31 @@ const VehicleInventory: React.FC = () => {
           <div className="bg-white rounded-lg p-8 max-w-md w-full">
             <h3 className="text-xl font-bold mb-4">Agregar Imágenes</h3>
             
+            {/* Información del vehículo */}
+            {selectedVehicleId && (
+              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-gray-600 mb-1">Editando vehículo:</p>
+                <div className="flex items-center gap-3">
+                  {vehicles.find(v => v.id === selectedVehicleId)?.imagenes?.[0] && (
+                    <img
+                      src={vehicles.find(v => v.id === selectedVehicleId)?.imagenes[0]}
+                      alt="Vehículo"
+                      className="w-16 h-16 object-cover rounded border-2 border-blue-300"
+                    />
+                  )}
+                  <div>
+                    <p className="font-bold text-gray-900 text-lg">
+                      {vehicles.find(v => v.id === selectedVehicleId)?.marca}{" "}
+                      {vehicles.find(v => v.id === selectedVehicleId)?.modelo_año}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {vehicles.find(v => v.id === selectedVehicleId)?.imagenes?.length || 0} imágenes actuales
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             {/* Drag and Drop Zone */}
             <div
               onDragOver={handleDragOver}
@@ -664,10 +691,9 @@ const VehicleInventory: React.FC = () => {
           <thead className="bg-gray-100">
             <tr>
               <th className="px-4 py-2 text-left">Imagen</th>
-              <th className="px-4 py-2 text-left">Marca</th>
-              <th className="px-4 py-2 text-left">Modelo</th>
+              <th className="px-4 py-2 text-left">Vehículo</th>
+              <th className="px-4 py-2 text-left">Detalles</th>
               <th className="px-4 py-2 text-left">Precio</th>
-              <th className="px-4 py-2 text-left">Descuento</th>
               <th className="px-4 py-2 text-left">Estado</th>
               <th className="px-4 py-2 text-left">Acciones</th>
             </tr>
@@ -696,28 +722,38 @@ const VehicleInventory: React.FC = () => {
                     </div>
                   )}
                 </td>
-                <td className="px-4 py-2">{vehicle.marca}</td>
-                <td className="px-4 py-2">{vehicle.modelo_año}</td>
+                <td className="px-4 py-2">
+                  <div className="font-bold text-gray-900">{vehicle.marca}</div>
+                  <div className="text-sm text-gray-600">{vehicle.modelo_año}</div>
+                  <div className="text-xs text-gray-500 mt-1">ID: {vehicle.id.substring(0, 8)}...</div>
+                </td>
+                <td className="px-4 py-2">
+                  <div className="text-sm space-y-1">
+                    {(vehicle as any).linea && (
+                      <div className="text-gray-700">📋 {(vehicle as any).linea}</div>
+                    )}
+                    {(vehicle as any).combustible && (
+                      <div className="text-gray-600">⛽ {(vehicle as any).combustible}</div>
+                    )}
+                    {(vehicle as any).transmision && (
+                      <div className="text-gray-600">⚙️ {(vehicle as any).transmision}</div>
+                    )}
+                  </div>
+                </td>
                 <td className="px-4 py-2">
                   <div className="flex flex-col">
                     {vehicle.descuento_porcentaje && vehicle.descuento_porcentaje > 0 ? (
                       <>
                         <span className="text-gray-400 line-through text-sm">QTZ {vehicle.precio_original?.toLocaleString()}</span>
                         <span className="text-green-600 font-bold">QTZ {vehicle.precio.toLocaleString()}</span>
+                        <span className="bg-red-100 text-red-800 px-2 py-0.5 rounded-full text-xs font-bold inline-block mt-1 w-fit">
+                          -{vehicle.descuento_porcentaje}%
+                        </span>
                       </>
                     ) : (
                       <span className="font-semibold">QTZ {vehicle.precio.toLocaleString()}</span>
                     )}
                   </div>
-                </td>
-                <td className="px-4 py-2">
-                  {vehicle.descuento_porcentaje && vehicle.descuento_porcentaje > 0 ? (
-                    <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-bold">
-                      -{vehicle.descuento_porcentaje}%
-                    </span>
-                  ) : (
-                    <span className="text-gray-400 text-sm">-</span>
-                  )}
                 </td>
                 <td className="px-4 py-2">
                   <select
@@ -735,28 +771,39 @@ const VehicleInventory: React.FC = () => {
                   </select>
                 </td>
                 <td className="px-4 py-2">
-                  <button
-                    onClick={() => {
-                      setSelectedVehicleId(vehicle.id);
-                      setShowImageModal(true);
-                      setImageFiles([]);
-                    }}
-                    className="text-blue-600 hover:text-blue-800 font-semibold mr-3"
-                  >
-                    📸 Imágenes
-                  </button>
-                  <button
-                    onClick={() => handleOpenPriceModal(vehicle)}
-                    className="text-green-600 hover:text-green-800 font-semibold mr-3"
-                  >
-                    💵 Precio
-                  </button>
-                  <button
-                    onClick={() => handleDeleteVehicle(vehicle.id)}
-                    className="text-red-600 hover:text-red-800 font-semibold"
-                  >
-                    Eliminar
-                  </button>
+                  <div className="flex flex-col gap-1">
+                    <button
+                      onClick={() => {
+                        setViewingVehicle(vehicle);
+                        setShowViewImagesModal(true);
+                      }}
+                      className="text-blue-600 hover:text-blue-800 font-semibold text-sm"
+                    >
+                      👁️ Ver ({vehicle.imagenes?.length || 0})
+                    </button>
+                    <button
+                      onClick={() => {
+                        setSelectedVehicleId(vehicle.id);
+                        setShowImageModal(true);
+                        setImageFiles([]);
+                      }}
+                      className="text-purple-600 hover:text-purple-800 font-semibold text-sm"
+                    >
+                      📸 Agregar
+                    </button>
+                    <button
+                      onClick={() => handleOpenPriceModal(vehicle)}
+                      className="text-green-600 hover:text-green-800 font-semibold text-sm"
+                    >
+                      💵 Precio
+                    </button>
+                    <button
+                      onClick={() => handleDeleteVehicle(vehicle.id)}
+                      className="text-red-600 hover:text-red-800 font-semibold text-sm"
+                    >
+                      🗑️ Eliminar
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -788,9 +835,25 @@ const VehicleInventory: React.FC = () => {
               </button>
             </div>
 
-            <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600">Vehículo:</p>
-              <p className="font-bold text-gray-900">{selectedVehicle.marca} {selectedVehicle.modelo_año}</p>
+            <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-gray-600 mb-2">Editando vehículo:</p>
+              <div className="flex items-center gap-3">
+                {selectedVehicle.imagenes?.[0] && (
+                  <img
+                    src={selectedVehicle.imagenes[0]}
+                    alt={`${selectedVehicle.marca} ${selectedVehicle.modelo_año}`}
+                    className="w-20 h-20 object-cover rounded border-2 border-blue-300"
+                  />
+                )}
+                <div>
+                  <p className="font-bold text-gray-900 text-lg">
+                    {selectedVehicle.marca} {selectedVehicle.modelo_año}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Precio actual: QTZ {selectedVehicle.precio.toLocaleString()}
+                  </p>
+                </div>
+              </div>
             </div>
 
             {error && (
@@ -880,6 +943,89 @@ const VehicleInventory: React.FC = () => {
                   Cancelar
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para Ver Imágenes */}
+      {showViewImagesModal && viewingVehicle && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h3 className="text-2xl font-bold text-gray-900">
+                  {viewingVehicle.marca} {viewingVehicle.modelo_año}
+                </h3>
+                <p className="text-gray-600">
+                  {viewingVehicle.imagenes?.length || 0} imagen(es)
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowViewImagesModal(false);
+                  setViewingVehicle(null);
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {viewingVehicle.imagenes && viewingVehicle.imagenes.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {viewingVehicle.imagenes.map((url, index) => (
+                  <div key={index} className="relative group">
+                    <div className="absolute top-2 left-2 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold z-10">
+                      #{index + 1}
+                    </div>
+                    <img
+                      src={url}
+                      alt={`${viewingVehicle.marca} ${viewingVehicle.modelo_año} - Imagen ${index + 1}`}
+                      className="w-full h-64 object-cover rounded-lg border-2 border-gray-200 hover:border-blue-400 transition cursor-pointer"
+                      onClick={() => window.open(url, '_blank')}
+                    />
+                    <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition">
+                      <button
+                        onClick={() => window.open(url, '_blank')}
+                        className="bg-white hover:bg-gray-100 text-gray-800 px-3 py-1 rounded-lg text-sm font-semibold shadow-lg"
+                      >
+                        🔍 Ampliar
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">📷</div>
+                <p className="text-gray-500">Este vehículo no tiene imágenes</p>
+                <button
+                  onClick={() => {
+                    setShowViewImagesModal(false);
+                    setViewingVehicle(null);
+                    setSelectedVehicleId(viewingVehicle.id);
+                    setShowImageModal(true);
+                  }}
+                  className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold"
+                >
+                  Agregar Imágenes
+                </button>
+              </div>
+            )}
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => {
+                  setShowViewImagesModal(false);
+                  setViewingVehicle(null);
+                }}
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg font-semibold"
+              >
+                Cerrar
+              </button>
             </div>
           </div>
         </div>
