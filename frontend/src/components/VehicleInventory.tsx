@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { supabase } from "../utils/supabase";
+import { supabase, ensureValidSession } from "../utils/supabase";
 
 interface Vehicle {
   id: string;
@@ -25,6 +25,8 @@ const VehicleInventory: React.FC = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [showViewImagesModal, setShowViewImagesModal] = useState(false);
   const [viewingVehicle, setViewingVehicle] = useState<Vehicle | null>(null);
+  const [editingImageOrder, setEditingImageOrder] = useState(false);
+  const [tempImageOrder, setTempImageOrder] = useState<string[]>([]);
   const [priceData, setPriceData] = useState({
     precio: "",
     descuento_porcentaje: "",
@@ -49,7 +51,28 @@ const VehicleInventory: React.FC = () => {
 
   useEffect(() => {
     fetchVehicles();
+    checkAuth();
   }, []);
+
+  const checkAuth = async () => {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    console.log("=== DEBUG SESIÓN ===");
+    console.log("Session existe:", !!session);
+    console.log("User ID:", session?.user?.id);
+    console.log("Email:", session?.user?.email);
+    console.log("Access token existe:", !!session?.access_token);
+    console.log("Token preview:", session?.access_token?.substring(0, 30) + "...");
+    
+    if (session?.user?.id) {
+      const { data: userData } = await supabase
+        .from("users")
+        .select("rol, email")
+        .eq("id", session.user.id)
+        .single();
+      console.log("Rol del usuario:", userData?.rol);
+    }
+    console.log("===================");
+  };
 
   const fetchVehicles = async () => {
     setLoading(true);
@@ -71,7 +94,32 @@ const VehicleInventory: React.FC = () => {
   const handleAddVehicle = async (e: React.FormEvent) => {
     e.preventDefault();
     setUploading(true);
+    setError("");
+    
     try {
+      // Verificar sesión activa
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        throw new Error("No hay sesión activa. Por favor inicia sesión nuevamente.");
+      }
+
+      // Verificar rol del usuario
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("rol, email")
+        .eq("id", session.user.id)
+        .single();
+
+      console.log("Usuario actual:", userData);
+
+      if (userError || !userData) {
+        throw new Error("No se pudo verificar el usuario");
+      }
+
+      if (!["admin", "superadmin", "gerente", "vendedor"].includes(userData.rol)) {
+        throw new Error(`Tu rol (${userData.rol}) no tiene permisos para agregar vehículos`);
+      }
+
       // 1. Subir imágenes a Supabase Storage
       const imageUrls: string[] = [];
       
@@ -119,7 +167,10 @@ const VehicleInventory: React.FC = () => {
           created_at: new Date().toISOString(),
         });
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error("Error al insertar:", insertError);
+        throw insertError;
+      }
 
       setFormData({ 
         marca: "", 
@@ -184,9 +235,16 @@ const VehicleInventory: React.FC = () => {
 
   const handleAddImagesToVehicle = async () => {
     if (!selectedVehicleId || imageFiles.length === 0) return;
-    
+
     setUploading(true);
     try {
+      // Verificar sesión activa
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setError("Sesión expirada. Por favor inicia sesión nuevamente.");
+        setUploading(false);
+        return;
+      }
       const vehicle = vehicles.find(v => v.id === selectedVehicleId);
       const existingImages = vehicle?.imagenes || [];
       const imageUrls: string[] = [...existingImages];
@@ -266,10 +324,52 @@ const VehicleInventory: React.FC = () => {
     setShowPriceModal(true);
   };
 
+  const moveImage = (index: number, direction: 'up' | 'down') => {
+    const newOrder = [...tempImageOrder];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    
+    if (targetIndex < 0 || targetIndex >= newOrder.length) return;
+    
+    [newOrder[index], newOrder[targetIndex]] = [newOrder[targetIndex], newOrder[index]];
+    setTempImageOrder(newOrder);
+  };
+
+  const handleSaveImageOrder = async () => {
+    if (!viewingVehicle) return;
+
+    try {
+      // Asegurar sesión válida
+      const session = await ensureValidSession();
+      console.log("Guardando orden de imágenes con token:", session.access_token.substring(0, 20) + "...");
+      
+      const { error } = await supabase
+        .from("vehicles")
+        .update({ imagenes: tempImageOrder })
+        .eq("id", viewingVehicle.id);
+
+      if (error) {
+        console.error("Error al guardar orden:", error);
+        throw error;
+      }
+
+      setEditingImageOrder(false);
+      fetchVehicles();
+      
+      // Actualizar el vehículo que estamos viendo
+      setViewingVehicle({ ...viewingVehicle, imagenes: tempImageOrder });
+    } catch (err: any) {
+      console.error("Error completo:", err);
+      setError(err.message);
+    }
+  };
+
   const handleUpdatePrice = async () => {
     if (!selectedVehicle) return;
 
     try {
+      // Asegurar sesión válida
+      const session = await ensureValidSession();
+
       const precioOriginal = parseFloat(priceData.precio);
       const descuento = parseFloat(priceData.descuento_porcentaje) || 0;
       
@@ -287,6 +387,8 @@ const VehicleInventory: React.FC = () => {
         ? precioOriginal * (1 - descuento / 100)
         : precioOriginal;
 
+      console.log("Intentando actualizar con token:", session.access_token.substring(0, 20) + "...");
+
       const { error: updateError } = await supabase
         .from("vehicles")
         .update({
@@ -296,7 +398,10 @@ const VehicleInventory: React.FC = () => {
         })
         .eq("id", selectedVehicle.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error("Error completo:", updateError);
+        throw updateError;
+      }
 
       setShowPriceModal(false);
       setSelectedVehicle(null);
@@ -951,7 +1056,7 @@ const VehicleInventory: React.FC = () => {
       {/* Modal para Ver Imágenes */}
       {showViewImagesModal && viewingVehicle && (
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <div>
                 <h3 className="text-2xl font-bold text-gray-900">
@@ -961,40 +1066,103 @@ const VehicleInventory: React.FC = () => {
                   {viewingVehicle.imagenes?.length || 0} imagen(es)
                 </p>
               </div>
-              <button
-                onClick={() => {
-                  setShowViewImagesModal(false);
-                  setViewingVehicle(null);
-                }}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+              <div className="flex gap-2 items-center">
+                {!editingImageOrder && viewingVehicle.imagenes?.length > 1 && (
+                  <button
+                    onClick={() => {
+                      setEditingImageOrder(true);
+                      setTempImageOrder([...viewingVehicle.imagenes]);
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold"
+                  >
+                    🔄 Ordenar
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    setShowViewImagesModal(false);
+                    setViewingVehicle(null);
+                    setEditingImageOrder(false);
+                    setTempImageOrder([]);
+                  }}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
             </div>
+
+            {editingImageOrder && (
+              <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm font-semibold text-gray-800 mb-2">
+                  ✏️ Modo de Edición - Ordena las imágenes
+                </p>
+                <p className="text-xs text-gray-600">
+                  La primera imagen es la que se mostrará como principal en el catálogo
+                </p>
+              </div>
+            )}
 
             {viewingVehicle.imagenes && viewingVehicle.imagenes.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {viewingVehicle.imagenes.map((url, index) => (
+                {(editingImageOrder ? tempImageOrder : viewingVehicle.imagenes).map((url, index) => (
                   <div key={index} className="relative group">
-                    <div className="absolute top-2 left-2 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold z-10">
-                      #{index + 1}
+                    <div className={`absolute top-2 left-2 ${
+                      editingImageOrder && index === 0 
+                        ? 'bg-green-600' 
+                        : 'bg-blue-600'
+                    } text-white px-3 py-1 rounded-full text-sm font-bold z-10`}>
+                      {editingImageOrder && index === 0 ? '⭐ Principal' : `#${index + 1}`}
                     </div>
+                    
+                    {editingImageOrder && (
+                      <div className="absolute top-2 right-2 flex gap-1 z-10">
+                        <button
+                          onClick={() => moveImage(index, 'up')}
+                          disabled={index === 0}
+                          className={`bg-white hover:bg-gray-100 text-gray-800 p-2 rounded-lg shadow-lg font-bold ${
+                            index === 0 ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                          title="Mover arriba"
+                        >
+                          ⬆️
+                        </button>
+                        <button
+                          onClick={() => moveImage(index, 'down')}
+                          disabled={index === tempImageOrder.length - 1}
+                          className={`bg-white hover:bg-gray-100 text-gray-800 p-2 rounded-lg shadow-lg font-bold ${
+                            index === tempImageOrder.length - 1 ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                          title="Mover abajo"
+                        >
+                          ⬇️
+                        </button>
+                      </div>
+                    )}
+                    
                     <img
                       src={url}
                       alt={`${viewingVehicle.marca} ${viewingVehicle.modelo_año} - Imagen ${index + 1}`}
-                      className="w-full h-64 object-cover rounded-lg border-2 border-gray-200 hover:border-blue-400 transition cursor-pointer"
-                      onClick={() => window.open(url, '_blank')}
+                      className={`w-full h-64 object-cover rounded-lg border-2 transition cursor-pointer ${
+                        editingImageOrder 
+                          ? 'border-blue-400' 
+                          : 'border-gray-200 hover:border-blue-400'
+                      }`}
+                      onClick={() => !editingImageOrder && window.open(url, '_blank')}
                     />
-                    <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition">
-                      <button
-                        onClick={() => window.open(url, '_blank')}
-                        className="bg-white hover:bg-gray-100 text-gray-800 px-3 py-1 rounded-lg text-sm font-semibold shadow-lg"
-                      >
-                        🔍 Ampliar
-                      </button>
-                    </div>
+                    
+                    {!editingImageOrder && (
+                      <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition">
+                        <button
+                          onClick={() => window.open(url, '_blank')}
+                          className="bg-white hover:bg-gray-100 text-gray-800 px-3 py-1 rounded-lg text-sm font-semibold shadow-lg"
+                        >
+                          🔍 Ampliar
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -1016,16 +1184,36 @@ const VehicleInventory: React.FC = () => {
               </div>
             )}
 
-            <div className="mt-6 flex justify-end">
-              <button
-                onClick={() => {
-                  setShowViewImagesModal(false);
-                  setViewingVehicle(null);
-                }}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg font-semibold"
-              >
-                Cerrar
-              </button>
+            <div className="mt-6 flex justify-end gap-2">
+              {editingImageOrder ? (
+                <>
+                  <button
+                    onClick={handleSaveImageOrder}
+                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold"
+                  >
+                    ✓ Guardar Orden
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditingImageOrder(false);
+                      setTempImageOrder([]);
+                    }}
+                    className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg font-semibold"
+                  >
+                    Cancelar
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => {
+                    setShowViewImagesModal(false);
+                    setViewingVehicle(null);
+                  }}
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg font-semibold"
+                >
+                  Cerrar
+                </button>
+              )}
             </div>
           </div>
         </div>

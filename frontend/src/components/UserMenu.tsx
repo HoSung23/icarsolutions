@@ -111,7 +111,7 @@ export default function UserMenu() {
             Facturación
           </a>
 
-          {user.rol === "superadmin" && (
+          {["admin", "superadmin", "gerente", "vendedor"].includes(user.rol) && (
             <>
               <div className="border-t border-gray-200 my-2"></div>
               <a
@@ -132,7 +132,7 @@ export default function UserMenu() {
                     d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                   />
                 </svg>
-                Administración
+                Panel de Administración
               </a>
             </>
           )}
