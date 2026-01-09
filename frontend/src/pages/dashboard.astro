@@ -48,21 +48,26 @@ import Settings from "../components/Settings";
   // Definir permisos por rol
   const rolePermissions = {
     cliente: [
-      { icon: "👤", title: "Mi Perfil", description: "Actualiza tu información personal", link: "/profile" },
-      { icon: "⚙️", title: "Configuración", description: "Ajusta configuración de tu cuenta", link: "/settings" }
+      { icon: "�", title: "Mis Vehículos", description: "Registra y gestiona tus vehículos", link: "/dashboard/my-vehicles" },
+      { icon: "📅", title: "Mis Citas", description: "Agenda citas de servicio", link: "/appointments" },
+      { icon: "📄", title: "Mis Órdenes", description: "Historial de órdenes de servicio", link: "/dashboard/ordenes" },
+      { icon: "💳", title: "Facturación", description: "Consulta tus facturas", link: "/dashboard/billing" },
+      { icon: "👤", title: "Mi Perfil", description: "Actualiza tu información personal", link: "/dashboard/profile" }
     ],
     vendedor: [
       { icon: "👤", title: "Mi Perfil", description: "Actualiza tu información personal", link: "/profile" },
       { icon: "🚗", title: "Vehículos", description: "Administra el inventario de vehículos", link: "/vehicles" },
-      { icon: "🔧", title: "Repuestos", description: "Gestiona catálogo de repuestos", link: "/spare-parts" },
+      { icon: "�", title: "Vehículos Clientes", description: "Gestiona vehículos de clientes", link: "/dashboard/client-vehicles" },
+      { icon: "�🔧", title: "Repuestos", description: "Gestiona catálogo de repuestos", link: "/spare-parts" },
       { icon: "📅", title: "Citas", description: "Gestiona citas de servicio", link: "/dashboard/appointments" },
       { icon: "⚙️", title: "Configuración", description: "Ajusta configuración de tu cuenta", link: "/settings" }
     ],
     admin: [
       { icon: "🚗", title: "Vehículos", description: "Administra el inventario de vehículos", link: "/vehicles" },
-      { icon: "�", title: "Repuestos", description: "Gestiona catálogo de repuestos", link: "/spare-parts" },
+      { icon: "🚙", title: "Vehículos Clientes", description: "Gestiona vehículos de clientes", link: "/dashboard/client-vehicles" },
+      { icon: "🔧", title: "Repuestos", description: "Gestiona catálogo de repuestos", link: "/spare-parts" },
       { icon: "📅", title: "Citas", description: "Gestiona citas de servicio", link: "/dashboard/appointments" },
-      { icon: "�📄", title: "Cotizaciones", description: "Genera y descarga PDFs de cotizaciones", link: "/quotations" },
+      { icon: "📄", title: "Cotizaciones", description: "Genera y descarga PDFs de cotizaciones", link: "/quotations" },
       { icon: "📊", title: "Estadísticas", description: "Visualiza ventas y desempeño", link: "/statistics" },
       { icon: "👤", title: "Mi Perfil", description: "Actualiza tu información personal", link: "/profile" },
       { icon: "👥", title: "Usuarios", description: "Gestiona usuarios del sistema", link: "/users" },
@@ -70,9 +75,10 @@ import Settings from "../components/Settings";
     ],
     gerente: [
       { icon: "🚗", title: "Vehículos", description: "Administra el inventario de vehículos", link: "/vehicles" },
-      { icon: "�", title: "Repuestos", description: "Gestiona catálogo de repuestos", link: "/spare-parts" },
+      { icon: "🚙", title: "Vehículos Clientes", description: "Gestiona vehículos de clientes", link: "/dashboard/client-vehicles" },
+      { icon: "🔧", title: "Repuestos", description: "Gestiona catálogo de repuestos", link: "/spare-parts" },
       { icon: "📅", title: "Citas", description: "Gestiona citas de servicio", link: "/dashboard/appointments" },
-      { icon: "�📄", title: "Cotizaciones", description: "Genera y descarga PDFs de cotizaciones", link: "/quotations" },
+      { icon: "📄", title: "Cotizaciones", description: "Genera y descarga PDFs de cotizaciones", link: "/quotations" },
       { icon: "📊", title: "Estadísticas", description: "Visualiza ventas y desempeño", link: "/statistics" },
       { icon: "👤", title: "Mi Perfil", description: "Actualiza tu información personal", link: "/profile" },
       { icon: "👥", title: "Usuarios", description: "Gestiona usuarios del sistema", link: "/users" },
@@ -80,7 +86,8 @@ import Settings from "../components/Settings";
     ],
     superadmin: [
       { icon: "🚗", title: "Vehículos", description: "Administra el inventario de vehículos", link: "/vehicles" },
-      { icon: "�", title: "Repuestos", description: "Gestiona catálogo de repuestos", link: "/spare-parts" },
+      { icon: "🚙", title: "Vehículos Clientes", description: "Gestiona vehículos de clientes", link: "/dashboard/client-vehicles" },
+      { icon: "🔧", title: "Repuestos", description: "Gestiona catálogo de repuestos", link: "/spare-parts" },
       { icon: "📅", title: "Citas", description: "Gestiona citas de servicio", link: "/dashboard/appointments" },
       { icon: "�📄", title: "Cotizaciones", description: "Genera y descarga PDFs de cotizaciones", link: "/quotations" },
       { icon: "📊", title: "Estadísticas", description: "Visualiza ventas y desempeño", link: "/statistics" },

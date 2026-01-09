@@ -22,3 +22,70 @@ import { UnifiedCatalogSection } from "../components/UnifiedCatalogSection";
     <UnifiedCatalogSection client:load />
   </div>
 </Layout>
+
+<script>
+  import { supabase } from "../utils/supabase";
+
+  // Registrar visita a la página
+  async function registerPageVisit() {
+    try {
+      // Generar o recuperar session_id del localStorage
+      let sessionId = localStorage.getItem('session_id');
+      if (!sessionId) {
+        sessionId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+        localStorage.setItem('session_id', sessionId);
+      }
+
+      // Detectar tipo de dispositivo
+      const getDeviceType = () => {
+        const ua = navigator.userAgent;
+        if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
+          return "tablet";
+        }
+        if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
+          return "mobile";
+        }
+        return "desktop";
+      };
+
+      // Detectar navegador
+      const getBrowser = () => {
+        const ua = navigator.userAgent;
+        if (ua.includes("Firefox")) return "Firefox";
+        if (ua.includes("Chrome") && !ua.includes("Edg")) return "Chrome";
+        if (ua.includes("Safari") && !ua.includes("Chrome")) return "Safari";
+        if (ua.includes("Edg")) return "Edge";
+        if (ua.includes("Opera") || ua.includes("OPR")) return "Opera";
+        return "Other";
+      };
+
+      // Verificar si hay usuario autenticado
+      const { data: { user } } = await supabase.auth.getUser();
+
+      // Registrar la visita
+      const { error } = await supabase
+        .from('site_visits')
+        .insert({
+          page_url: window.location.pathname + window.location.search,
+          user_agent: navigator.userAgent,
+          referrer: document.referrer || null,
+          session_id: sessionId,
+          user_id: user?.id || null,
+          device_type: getDeviceType(),
+          browser: getBrowser(),
+        });
+
+      if (error && error.code !== '42P01') { // Ignorar error si la tabla no existe aún
+        console.error('Error registrando visita:', error);
+      }
+    } catch (error) {
+      // Silenciar errores para no afectar la experiencia del usuario
+      console.debug('Visit tracking error:', error);
+    }
+  }
+
+  // Ejecutar al cargar la página
+  if (typeof window !== 'undefined') {
+    registerPageVisit();
+  }
+</script>

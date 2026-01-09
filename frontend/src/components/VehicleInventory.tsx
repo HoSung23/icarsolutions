@@ -27,6 +27,7 @@ const VehicleInventory: React.FC = () => {
   const [viewingVehicle, setViewingVehicle] = useState<Vehicle | null>(null);
   const [editingImageOrder, setEditingImageOrder] = useState(false);
   const [tempImageOrder, setTempImageOrder] = useState<string[]>([]);
+  const [selectedImages, setSelectedImages] = useState<Map<string, number>>(new Map());
   const [priceData, setPriceData] = useState({
     precio: "",
     descuento_porcentaje: "",
@@ -332,6 +333,48 @@ const VehicleInventory: React.FC = () => {
     
     [newOrder[index], newOrder[targetIndex]] = [newOrder[targetIndex], newOrder[index]];
     setTempImageOrder(newOrder);
+  };
+
+  const handleImageClick = (imageUrl: string) => {
+    if (!editingImageOrder) return;
+
+    const newSelectedImages = new Map(selectedImages);
+    
+    if (newSelectedImages.has(imageUrl)) {
+      // Si ya está seleccionada, la deseleccionamos
+      const removedNumber = newSelectedImages.get(imageUrl)!;
+      newSelectedImages.delete(imageUrl);
+      
+      // Reajustar los números de las imágenes que vienen después
+      newSelectedImages.forEach((value, key) => {
+        if (value > removedNumber) {
+          newSelectedImages.set(key, value - 1);
+        }
+      });
+    } else {
+      // Si no está seleccionada, le asignamos el siguiente número
+      const nextNumber = newSelectedImages.size + 1;
+      newSelectedImages.set(imageUrl, nextNumber);
+    }
+    
+    setSelectedImages(newSelectedImages);
+  };
+
+  const applyImageOrder = () => {
+    // Ordenar las imágenes según los números asignados
+    const sortedImages = Array.from(selectedImages.entries())
+      .sort((a, b) => a[1] - b[1])
+      .map(([url]) => url);
+    
+    // Agregar las imágenes no seleccionadas al final
+    const unselectedImages = tempImageOrder.filter(url => !selectedImages.has(url));
+    
+    setTempImageOrder([...sortedImages, ...unselectedImages]);
+    setSelectedImages(new Map());
+  };
+
+  const clearSelection = () => {
+    setSelectedImages(new Map());
   };
 
   const handleSaveImageOrder = async () => {
@@ -1084,6 +1127,7 @@ const VehicleInventory: React.FC = () => {
                     setViewingVehicle(null);
                     setEditingImageOrder(false);
                     setTempImageOrder([]);
+                    setSelectedImages(new Map());
                   }}
                   className="text-gray-500 hover:text-gray-700"
                 >
@@ -1097,74 +1141,99 @@ const VehicleInventory: React.FC = () => {
             {editingImageOrder && (
               <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <p className="text-sm font-semibold text-gray-800 mb-2">
-                  ✏️ Modo de Edición - Ordena las imágenes
+                  ✏️ Modo de Edición - Haz click en las imágenes para ordenarlas
                 </p>
-                <p className="text-xs text-gray-600">
-                  La primera imagen es la que se mostrará como principal en el catálogo
+                <p className="text-xs text-gray-600 mb-3">
+                  • Haz click en una imagen para asignarle un número (1, 2, 3...)<br/>
+                  • La primera imagen será la principal del catálogo<br/>
+                  • Haz click de nuevo para deseleccionar
                 </p>
+                {selectedImages.size > 0 && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={applyImageOrder}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold"
+                    >
+                      ✓ Aplicar Orden ({selectedImages.size} seleccionadas)
+                    </button>
+                    <button
+                      onClick={clearSelection}
+                      className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg text-sm font-semibold"
+                    >
+                      Limpiar Selección
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
             {viewingVehicle.imagenes && viewingVehicle.imagenes.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {(editingImageOrder ? tempImageOrder : viewingVehicle.imagenes).map((url, index) => (
-                  <div key={index} className="relative group">
-                    <div className={`absolute top-2 left-2 ${
-                      editingImageOrder && index === 0 
-                        ? 'bg-green-600' 
-                        : 'bg-blue-600'
-                    } text-white px-3 py-1 rounded-full text-sm font-bold z-10`}>
-                      {editingImageOrder && index === 0 ? '⭐ Principal' : `#${index + 1}`}
-                    </div>
-                    
-                    {editingImageOrder && (
-                      <div className="absolute top-2 right-2 flex gap-1 z-10">
-                        <button
-                          onClick={() => moveImage(index, 'up')}
-                          disabled={index === 0}
-                          className={`bg-white hover:bg-gray-100 text-gray-800 p-2 rounded-lg shadow-lg font-bold ${
-                            index === 0 ? 'opacity-50 cursor-not-allowed' : ''
-                          }`}
-                          title="Mover arriba"
-                        >
-                          ⬆️
-                        </button>
-                        <button
-                          onClick={() => moveImage(index, 'down')}
-                          disabled={index === tempImageOrder.length - 1}
-                          className={`bg-white hover:bg-gray-100 text-gray-800 p-2 rounded-lg shadow-lg font-bold ${
-                            index === tempImageOrder.length - 1 ? 'opacity-50 cursor-not-allowed' : ''
-                          }`}
-                          title="Mover abajo"
-                        >
-                          ⬇️
-                        </button>
-                      </div>
-                    )}
-                    
-                    <img
-                      src={url}
-                      alt={`${viewingVehicle.marca} ${viewingVehicle.modelo_año} - Imagen ${index + 1}`}
-                      className={`w-full h-64 object-cover rounded-lg border-2 transition cursor-pointer ${
-                        editingImageOrder 
-                          ? 'border-blue-400' 
-                          : 'border-gray-200 hover:border-blue-400'
+                {(editingImageOrder ? tempImageOrder : viewingVehicle.imagenes).map((url, index) => {
+                  const selectionNumber = selectedImages.get(url);
+                  const isSelected = selectedImages.has(url);
+                  
+                  return (
+                    <div 
+                      key={index} 
+                      className={`relative group cursor-pointer transition-all ${
+                        editingImageOrder && isSelected ? 'ring-4 ring-blue-500 rounded-lg' : ''
                       }`}
-                      onClick={() => !editingImageOrder && window.open(url, '_blank')}
-                    />
-                    
-                    {!editingImageOrder && (
-                      <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition">
-                        <button
-                          onClick={() => window.open(url, '_blank')}
-                          className="bg-white hover:bg-gray-100 text-gray-800 px-3 py-1 rounded-lg text-sm font-semibold shadow-lg"
-                        >
-                          🔍 Ampliar
-                        </button>
+                      onClick={() => handleImageClick(url)}
+                    >
+                      {/* Número de orden asignado o posición actual */}
+                      <div className={`absolute top-2 left-2 ${
+                        isSelected
+                          ? 'bg-blue-600 scale-110 shadow-lg' 
+                          : editingImageOrder && index === 0 
+                            ? 'bg-green-600' 
+                            : 'bg-gray-600'
+                      } text-white px-3 py-1 rounded-full text-sm font-bold z-10 transition-all ${
+                        isSelected ? 'animate-pulse' : ''
+                      }`}>
+                        {isSelected 
+                          ? `✓ ${selectionNumber}` 
+                          : editingImageOrder && index === 0 
+                            ? '⭐ Principal' 
+                            : `#${index + 1}`}
                       </div>
-                    )}
-                  </div>
-                ))}
+                      
+                      <img
+                        src={url}
+                        alt={`${viewingVehicle.marca} ${viewingVehicle.modelo_año} - Imagen ${index + 1}`}
+                        className={`w-full h-64 object-cover rounded-lg border-2 transition-all ${
+                          isSelected
+                            ? 'border-blue-500 brightness-110' 
+                            : editingImageOrder 
+                              ? 'border-gray-300 hover:border-blue-400' 
+                              : 'border-gray-200 hover:border-blue-400'
+                        }`}
+                      />
+                      
+                      {!editingImageOrder && (
+                        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.open(url, '_blank');
+                            }}
+                            className="bg-white hover:bg-gray-100 text-gray-800 px-3 py-1 rounded-lg text-sm font-semibold shadow-lg"
+                          >
+                            🔍 Ampliar
+                          </button>
+                        </div>
+                      )}
+
+                      {editingImageOrder && (
+                        <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all rounded-lg flex items-center justify-center">
+                          <span className="text-white font-bold text-lg opacity-0 group-hover:opacity-100 transition-opacity">
+                            {isSelected ? 'Click para deseleccionar' : 'Click para seleccionar'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-12">
@@ -1197,6 +1266,7 @@ const VehicleInventory: React.FC = () => {
                     onClick={() => {
                       setEditingImageOrder(false);
                       setTempImageOrder([]);
+                      setSelectedImages(new Map());
                     }}
                     className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg font-semibold"
                   >

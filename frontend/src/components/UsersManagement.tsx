@@ -159,10 +159,12 @@ const UsersManagement: React.FC = () => {
                       value={user.rol}
                       onChange={(e) => handleChangeRole(user.id, e.target.value)}
                       className="px-2 py-1 border border-gray-300 rounded bg-white text-sm capitalize"
+                      disabled={user.rol === "admin" || user.rol === "superadmin"}
                     >
                       <option value="cliente">Cliente</option>
                       <option value="vendedor">Vendedor</option>
                       <option value="gerente">Gerente</option>
+                      <option value="admin">Admin</option>
                     </select>
                   ) : (
                     <span className="capitalize font-semibold">{user.rol}</span>

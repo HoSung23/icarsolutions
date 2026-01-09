@@ -1,38 +1,40 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import SparePartsInventory from "../components/SparePartsInventory";
+import Layout from "../../layouts/Layout.astro";
+import ClientVehiclesManager from "../../components/ClientVehiclesManager";
 ---
 
-<Layout title="Gestión de Repuestos - iCarSolutions">
+<Layout title="Gestión de Vehículos de Clientes - iCarSolutions">
   <div class="min-h-screen bg-gray-50 py-8">
     <div class="max-w-7xl mx-auto px-4">
       <div class="mb-6">
         <a href="/dashboard" class="text-blue-600 hover:underline">← Volver al Dashboard</a>
       </div>
-      <SparePartsInventory client:load />
+      
+      <ClientVehiclesManager client:load />
     </div>
   </div>
 </Layout>
 
 <script>
-  import { supabase } from "../utils/supabase";
+  import { supabase } from "../../utils/supabase";
 
   async function checkAuth() {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
     
-    if (!user) {
+    if (!session) {
       window.location.href = "/login";
       return;
     }
 
+    // Verificar que es staff
     const { data: userData } = await supabase
       .from("users")
       .select("rol")
-      .eq("id", user.id)
+      .eq("id", session.user.id)
       .single();
 
-    // Solo admin, superadmin, gerente y vendedor pueden acceder
     if (!userData || !["admin", "superadmin", "gerente", "vendedor"].includes(userData.rol)) {
+      alert("No tienes permisos para acceder a esta página");
       window.location.href = "/dashboard";
     }
   }
