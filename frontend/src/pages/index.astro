@@ -75,12 +75,16 @@ import { UnifiedCatalogSection } from "../components/UnifiedCatalogSection";
           browser: getBrowser(),
         });
 
-      if (error && error.code !== '42P01') { // Ignorar error si la tabla no existe aún
-        console.error('Error registrando visita:', error);
+      if (error) {
+        console.error('Error registrando visita:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
       }
     } catch (error) {
-      // Silenciar errores para no afectar la experiencia del usuario
-      console.debug('Visit tracking error:', error);
+      console.error('Error en registerPageVisit:', error);
     }
   }
 
