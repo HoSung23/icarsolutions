@@ -1,0 +1,12 @@
+{
+  "version": "1.0",
+  "services": [
+    {
+      "name": "icarsolutions-backend",
+      "root": "backend",
+      "buildCommand": "npm run build",
+      "startCommand": "npm run start",
+      "port": 3000
+    }
+  ]
+}
