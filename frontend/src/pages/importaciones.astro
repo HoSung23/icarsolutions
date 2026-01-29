@@ -384,10 +384,26 @@ import LogoutButton from "../components/LogoutButton";
     const countEl = document.getElementById('vehicle-count');
 
     try {
-      const backendUrl = import.meta.env.PUBLIC_BACKEND_URL || 'http://localhost:3000';
-      console.log('Fetching vehicles from:', `${backendUrl}/api/importaciones`);
+      let backendUrl = import.meta.env.PUBLIC_BACKEND_URL || '';
       
-      const response = await fetch(`${backendUrl}/api/importaciones`);
+      // Si no hay URL configurada o está vacía, usar rutas relativas (para producción)
+      let apiUrl: string;
+      if (backendUrl) {
+        apiUrl = `${backendUrl}/api/importaciones`;
+      } else {
+        // En producción, el backend está en la misma raíz con /api
+        apiUrl = '/api/importaciones';
+      }
+      
+      console.log('Fetching vehicles from:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin'
+      });
       
       if (!response.ok) {
         throw new Error(`Error ${response.status}: ${response.statusText}`);
@@ -444,7 +460,23 @@ import LogoutButton from "../components/LogoutButton";
         errorEl.classList.remove('hidden');
         const errorMessageEl = document.getElementById('error-message');
         if (errorMessageEl) {
-          errorMessageEl.textContent = error.message || 'Ocurrió un error inesperado';
+          let errorMessage = error.message || 'Ocurrió un error inesperado';
+          
+          // Mejorar mensaje de error según el tipo
+          if (error instanceof TypeError && error.message.includes('fetch')) {
+            errorMessage = '❌ No se puede conectar con el servidor. Por favor verifica la configuración de la API.';
+          } else if (error.message.includes('Error 5')) {
+            errorMessage = '❌ Error en el servidor (500). Por favor intenta más tarde.';
+          } else if (error.message.includes('Error 4')) {
+            errorMessage = '❌ Recurso no encontrado (404). Verifica la URL de la API.';
+          }
+          
+          errorMessageEl.textContent = errorMessage;
+          console.error('Full error details:', {
+            message: error.message,
+            stack: error.stack,
+            backendUrl: import.meta.env.PUBLIC_BACKEND_URL
+          });
         }
       }
     }

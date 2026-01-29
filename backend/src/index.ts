@@ -21,7 +21,16 @@ const limiter = rateLimit({
 });
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://localhost:3000",
+    "http://localhost:4321",
+    "http://localhost:4322",
+    "https://i-carsolutions.com",
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : ""
+  ].filter(Boolean),
+  credentials: true
+}));
 app.use(express.json());
 app.use(limiter);
 
@@ -32,14 +41,23 @@ app.use("/api/importaciones", iaaiRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok" });
+  res.json({ 
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV
+  });
 });
 
 // Error handler
 app.use(errorHandler);
 
-// Start server
-app.listen(PORT, () => {
-  logger.info(`Server running on port ${PORT}`);
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+// Para desarrollo local
+if (process.env.NODE_ENV !== "production") {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    logger.info(`Server running on port ${PORT}`);
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  });
+}
+
+export default app;
