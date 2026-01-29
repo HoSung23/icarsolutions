@@ -384,17 +384,8 @@ import LogoutButton from "../components/LogoutButton";
     const countEl = document.getElementById('vehicle-count');
 
     try {
-      let backendUrl = import.meta.env.PUBLIC_BACKEND_URL || '';
-      
-      // Si no hay URL configurada o está vacía, usar rutas relativas (para producción)
-      let apiUrl: string;
-      if (backendUrl) {
-        apiUrl = `${backendUrl}/api/importaciones`;
-      } else {
-        // En producción, el backend está en la misma raíz con /api
-        apiUrl = '/api/importaciones';
-      }
-      
+      // Intentar primero con rutas relativas (funciona en producción y desarrollo)
+      let apiUrl = '/api/importaciones';
       console.log('Fetching vehicles from:', apiUrl);
       
       const response = await fetch(apiUrl, {
@@ -464,19 +455,15 @@ import LogoutButton from "../components/LogoutButton";
           
           // Mejorar mensaje de error según el tipo
           if (error instanceof TypeError && error.message.includes('fetch')) {
-            errorMessage = '❌ No se puede conectar con el servidor. Por favor verifica la configuración de la API.';
+            errorMessage = '❌ No se puede conectar con el servidor. Verifica que el backend esté corriendo.';
           } else if (error.message.includes('Error 5')) {
             errorMessage = '❌ Error en el servidor (500). Por favor intenta más tarde.';
           } else if (error.message.includes('Error 4')) {
-            errorMessage = '❌ Recurso no encontrado (404). Verifica la URL de la API.';
+            errorMessage = '❌ Recurso no encontrado (404). Verifica la configuración de la API.';
           }
           
           errorMessageEl.textContent = errorMessage;
-          console.error('Full error details:', {
-            message: error.message,
-            stack: error.stack,
-            backendUrl: import.meta.env.PUBLIC_BACKEND_URL
-          });
+          console.error('Full error details:', error);
         }
       }
     }
