@@ -26,9 +26,9 @@ interface Vehicle {
 export const getIaaiVehicles = async (req: Request, res: Response) => {
   try {
     const url = "https://www.iaai.com/Search?url=qimuE9iHTKQXX%2bQjC9C31GuWUG8u49R7f1h%2f6bivkZo%3d";
-    
+
     console.log('Intentando hacer scraping de IAAI...');
-    
+
     try {
       // Intentar obtener datos reales de IAAI
       const response = await axios.get(url, {
@@ -45,20 +45,20 @@ export const getIaaiVehicles = async (req: Request, res: Response) => {
       const vehicles: Vehicle[] = [];
 
       // Extraer vehículos de la página
-      $('.table-body .table-row').each((index, element) => {
+      $('.table-body .table-row').each((index: number, element: any) => {
         try {
           const $row = $(element);
-          
+
           // Extraer información básica
           const titleElement = $row.find('.td-year-make-model a');
           const title = titleElement.text().trim();
           const detailUrl = 'https://www.iaai.com' + titleElement.attr('href');
           const id = detailUrl.split('/').pop() || `vehicle-${index}`;
-          
+
           // Extraer imagen
-          const imageUrl = $row.find('.td-image img').attr('src') || 
-                          $row.find('.td-image img').attr('data-src') || '';
-          
+          const imageUrl = $row.find('.td-image img').attr('src') ||
+            $row.find('.td-image img').attr('data-src') || '';
+
           // Extraer otros datos
           const vin = $row.find('.td-vin').text().trim() || 'N/A';
           const odometer = $row.find('.td-odometer').text().trim() || 'N/A';
@@ -66,7 +66,7 @@ export const getIaaiVehicles = async (req: Request, res: Response) => {
           const condition = $row.find('.td-damage').text().trim() || 'Unknown';
           const location = $row.find('.td-location').text().trim() || 'Unknown';
           const auctionDate = $row.find('.td-sale-date').text().trim() || 'TBD';
-          
+
           // Parsear título para obtener año, marca y modelo
           const titleParts = title.split(' ');
           const year = titleParts[0] || 'N/A';
@@ -439,7 +439,7 @@ export const getIaaiVehicles = async (req: Request, res: Response) => {
 export const proxyImage = async (req: Request, res: Response) => {
   try {
     const { url } = req.query;
-    
+
     if (!url || typeof url !== 'string') {
       return res.status(400).json({ error: 'URL de imagen requerida' });
     }
