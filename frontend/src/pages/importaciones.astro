@@ -44,22 +44,55 @@ import LogoutButton from "../components/LogoutButton";
         </div>
       </div>
 
-      <!-- Loading State -->
-      <div id="loading" class="text-center py-12">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        <p class="mt-4 text-gray-600">Cargando vehículos disponibles...</p>
-      </div>
+      <!-- Filters Bar -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-8 p-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <!-- Search -->
+          <div class="space-y-1">
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Buscar</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+              </span>
+              <input 
+                type="text" 
+                id="search-input" 
+                placeholder="Marca, modelo o año..." 
+                class="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              />
+            </div>
+          </div>
 
-      <!-- Error State -->
-      <div id="error" class="hidden bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-        <svg class="mx-auto h-12 w-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-        </svg>
-        <h3 class="mt-4 text-lg font-medium text-red-800">Error al cargar vehículos</h3>
-        <p id="error-message" class="mt-2 text-sm text-red-600"></p>
-        <button onclick="location.reload()" class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700">
-          Reintentar
-        </button>
+          <!-- Make Filter -->
+          <div class="space-y-1">
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Marca</label>
+            <select id="make-filter" class="block w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition appearance-none bg-no-repeat bg-right pr-8" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236B7280%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-size: 10px; background-position: right 12px center;">
+              <option value="">Todas las marcas</option>
+            </select>
+          </div>
+
+          <!-- Year Filter -->
+          <div class="space-y-1">
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Año</label>
+            <select id="year-filter" class="block w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition appearance-none bg-no-repeat bg-right pr-8" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236B7280%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-size: 10px; background-position: right 12px center;">
+              <option value="">Cualquier año</option>
+            </select>
+          </div>
+
+          <!-- Sort -->
+          <div class="space-y-1">
+            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Ordenar por</label>
+            <select id="sort-filter" class="block w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition appearance-none bg-no-repeat bg-right pr-8" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%236B7280%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E'); background-size: 10px; background-position: right 12px center;">
+              <option value="newest">Más recientes</option>
+              <option value="oldest">Más antiguos</option>
+              <option value="price-low">Precio más bajo</option>
+              <option value="price-high">Precio más alto</option>
+              <option value="mileage-low">Menor kilometraje</option>
+            </select>
+          </div>
+        </div>
       </div>
 
       <!-- Vehicles Grid -->
@@ -283,12 +316,12 @@ import LogoutButton from "../components/LogoutButton";
     const vehicleDataStr = JSON.stringify(safeVehicleData).replace(/'/g, "\\'");
     
     return `
-      <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">
-        <div class="relative h-48 bg-gray-200">
+      <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl transition-all duration-300 border border-gray-100 group">
+        <div class="relative h-56 bg-gray-200 overflow-hidden">
           <img 
             src="${vehicle.imageUrl || ''}" 
             alt="${vehicle.title || 'Vehículo'}" 
-            class="w-full h-full object-cover" 
+            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
             onerror="this.style.display='none'; this.parentElement.querySelector('.placeholder-icon').style.display='flex';" 
           />
           <div class="placeholder-icon hidden absolute inset-0 bg-gray-300 items-center justify-center">
@@ -296,80 +329,175 @@ import LogoutButton from "../components/LogoutButton";
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
             </svg>
           </div>
-          <div class="absolute top-2 right-2 ${statusColor} px-3 py-1 rounded-full text-xs font-semibold shadow-md">
+          <div class="absolute top-3 right-3 ${statusColor} px-3 py-1 rounded-full text-xs font-bold shadow-sm uppercase tracking-wider">
             ${vehicle.condition || 'Unknown'}
           </div>
           ${vehicle.price && vehicle.price !== '0' ? `
-          <div class="absolute bottom-2 left-2 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-md">
+          <div class="absolute bottom-3 left-3 bg-blue-600 text-white px-4 py-1.5 rounded-lg text-lg font-black shadow-lg">
             ${formatPrice(vehicle.price)}
           </div>
           ` : ''}
         </div>
 
-        <div class="p-4">
-          <h3 class="text-lg font-bold text-gray-900 mb-2 line-clamp-2">${vehicle.title || 'Sin título'}</h3>
+        <div class="p-5">
+          <h3 class="text-xl font-bold text-gray-900 mb-3 line-clamp-2 leading-tight h-14">${vehicle.title || 'Sin título'}</h3>
 
-          <div class="space-y-2 text-sm mb-4">
-            <div class="flex justify-between items-center">
-              <span class="text-gray-600">📍 Ubicación:</span>
-              <span class="text-gray-900 text-right text-xs">${vehicle.location || 'N/A'}</span>
+          <div class="space-y-2.5 text-sm mb-6">
+            <div class="flex justify-between items-center text-gray-500">
+              <span class="flex items-center"><svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Ubicación</span>
+              <span class="text-gray-900 font-medium text-right">${vehicle.location || 'N/A'}</span>
             </div>
             
-            <div class="flex justify-between">
-              <span class="text-gray-600">🔢 VIN:</span>
-              <span class="font-mono text-gray-900 text-xs">${vehicle.vin || 'N/A'}</span>
+            <div class="flex justify-between items-center text-gray-500">
+              <span class="flex items-center"><svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> VIN</span>
+              <span class="font-mono text-blue-600 font-semibold bg-blue-50 px-1.5 py-0.5 rounded text-xs">${vehicle.vin || 'N/A'}</span>
             </div>
             
-            <div class="flex justify-between">
-              <span class="text-gray-600">📏 Kilometraje:</span>
-              <span class="font-semibold text-gray-900">${vehicle.odometer ? vehicle.odometer + ' mi' : 'N/A'}</span>
+            <div class="flex justify-between items-center text-gray-500">
+              <span class="flex items-center"><svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg> Kilometraje</span>
+              <span class="font-bold text-gray-900">${vehicle.odometer ? vehicle.odometer + ' mi' : 'N/A'}</span>
             </div>
 
-            ${vehicle.engine ? `
-            <div class="flex justify-between">
-              <span class="text-gray-600">🔧 Motor:</span>
-              <span class="text-gray-900 text-xs text-right">${vehicle.engine.substring(0, 25)}${vehicle.engine.length > 25 ? '...' : ''}</span>
+            ${vehicle.engine && vehicle.engine !== 'N/A' ? `
+            <div class="flex justify-between items-center text-gray-500">
+              <span class="flex items-center"><svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37a1.724 1.724 0 002.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> Motor</span>
+              <span class="text-gray-900 text-xs text-right font-medium">${vehicle.engine}</span>
             </div>
             ` : ''}
 
-            ${vehicle.damageType ? `
-            <div class="flex justify-between">
-              <span class="text-gray-600">⚠️ Daño:</span>
-              <span class="text-gray-900 text-xs">${vehicle.damageType}</span>
+            ${vehicle.transmission && vehicle.transmission !== 'N/A' ? `
+            <div class="flex justify-between items-center text-gray-500">
+              <span class="flex items-center"><svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg> Transmisión</span>
+              <span class="text-gray-900 text-xs text-right font-medium">${vehicle.transmission}</span>
             </div>
             ` : ''}
-
-            ${vehicle.auctionDate ? `
-            <div class="flex justify-between">
-              <span class="text-gray-600">📅 Subasta:</span>
-              <span class="text-gray-900 font-medium">${vehicle.auctionDate}</span>
+            
+            <div class="flex justify-between items-center text-gray-500">
+              <span class="flex items-center"><svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> Subasta</span>
+              <span class="text-blue-700 font-bold">${vehicle.auctionDate || 'TBD'}</span>
             </div>
-            ` : ''}
           </div>
 
-          <div class="space-y-2">
+          <div class="grid grid-cols-5 gap-2">
             <button 
-              onclick="openQuoteModal('${vehicleDataStr}')"
-              class="w-full bg-blue-600 text-white text-center py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-semibold flex items-center justify-center space-x-2"
+              onclick='openQuoteModal(${vehicleDataStr})'
+              class="col-span-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 shadow-md hover:shadow-lg active:scale-95"
             >
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-              </svg>
               <span>Solicitar Cotización</span>
             </button>
-            
             <a 
               href="${vehicle.detailUrl || '#'}" 
               target="_blank"
-              rel="noopener noreferrer"
-              class="block w-full bg-gray-100 text-gray-700 text-center py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+              class="col-span-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl flex items-center justify-center transition-colors shadow-sm"
+              title="Ver en IAAI"
             >
-              Ver detalles en IAAI →
+              <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+              </svg>
             </a>
           </div>
         </div>
       </div>
     `;
+  }
+
+  // --- Lógica de filtrado ---
+  let allVehicles = [];
+
+  function populateFilters(vehicles: any[]) {
+    const makeFilter = document.getElementById('make-filter') as HTMLSelectElement;
+    const yearFilter = document.getElementById('year-filter') as HTMLSelectElement;
+
+    if (!makeFilter || !yearFilter) return;
+
+    // Marcas únicas
+    const makes = [...new Set(vehicles.map(v => v.make))].filter(Boolean).sort();
+    const currentMake = makeFilter.value;
+    makeFilter.innerHTML = '<option value="">Todas las marcas</option>';
+    makes.forEach(make => {
+      const option = document.createElement('option');
+      option.value = make;
+      option.textContent = make;
+      if (make === currentMake) option.selected = true;
+      makeFilter.appendChild(option);
+    });
+
+    // Años únicos
+    const years = [...new Set(vehicles.map(v => v.year))].filter(y => y && y !== 'N/A').sort((a, b) => b.localeCompare(a));
+    const currentYear = yearFilter.value;
+    yearFilter.innerHTML = '<option value="">Cualquier año</option>';
+    years.forEach(year => {
+      const option = document.createElement('option');
+      option.value = year;
+      option.textContent = year;
+      if (year === currentYear) option.selected = true;
+      yearFilter.appendChild(option);
+    });
+  }
+
+  function applyFilters() {
+    const searchTerm = (document.getElementById('search-input') as HTMLInputElement)?.value.toLowerCase() || '';
+    const makeFilterValue = (document.getElementById('make-filter') as HTMLSelectElement)?.value || '';
+    const yearFilterValue = (document.getElementById('year-filter') as HTMLSelectElement)?.value || '';
+    const sortFilterValue = (document.getElementById('sort-filter') as HTMLSelectElement)?.value || 'newest';
+
+    let filtered = allVehicles.filter(v => {
+      const matchesSearch = v.title.toLowerCase().includes(searchTerm) || 
+                            v.vin.toLowerCase().includes(searchTerm) ||
+                            v.model.toLowerCase().includes(searchTerm);
+      const matchesMake = !makeFilterValue || v.make === makeFilterValue;
+      const matchesYear = !yearFilterValue || v.year === yearFilterValue;
+      return matchesSearch && matchesMake && matchesYear;
+    });
+
+    // Ordenar
+    filtered.sort((a, b) => {
+      switch (sortFilterValue) {
+        case 'newest': return b.year.localeCompare(a.year);
+        case 'oldest': return a.year.localeCompare(b.year);
+        case 'price-low': return parseFloat(a.price.replace(/,/g, '')) - parseFloat(b.price.replace(/,/g, ''));
+        case 'price-high': return parseFloat(b.price.replace(/,/g, '')) - parseFloat(a.price.replace(/,/g, ''));
+        case 'mileage-low': 
+          const mileageA = parseInt(a.odometer.replace(/,/g, '')) || 0;
+          const mileageB = parseInt(b.odometer.replace(/,/g, '')) || 0;
+          return mileageA - mileageB;
+        default: return 0;
+      }
+    });
+
+    renderVehicles(filtered);
+  }
+
+  function renderVehicles(vehicles: any[]) {
+    const containerEl = document.getElementById('vehicles-container');
+    const countEl = document.getElementById('vehicle-count');
+    
+    if (countEl) countEl.textContent = vehicles.length.toString();
+    
+    if (containerEl) {
+      if (vehicles.length > 0) {
+        containerEl.innerHTML = '';
+        vehicles.forEach(vehicle => {
+          const cardHTML = createVehicleCard(vehicle);
+          const cardElement = document.createElement('div');
+          cardElement.innerHTML = cardHTML;
+          containerEl.appendChild(cardElement.firstElementChild!);
+        });
+      } else {
+        containerEl.innerHTML = `
+          <div class="col-span-full text-center py-20 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
+            <svg class="mx-auto h-16 w-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <h3 class="mt-4 text-xl font-bold text-gray-900">No hay vehículos que coincidan</h3>
+            <p class="mt-2 text-gray-500">Intenta ajustar tus filtros de búsqueda para encontrar lo que buscas.</p>
+            <button onclick="document.getElementById('search-input').value=''; document.querySelectorAll('select').forEach(s => s.selectedIndex=0); applyFilters();" class="mt-6 text-blue-600 font-bold hover:underline">
+              Limpiar todos los filtros
+            </button>
+          </div>
+        `;
+      }
+    }
   }
 
   // Cargar vehículos
@@ -380,103 +508,49 @@ import LogoutButton from "../components/LogoutButton";
     const loadingEl = document.getElementById('loading');
     const errorEl = document.getElementById('error');
     const gridEl = document.getElementById('vehicles-grid');
-    const containerEl = document.getElementById('vehicles-container');
-    const countEl = document.getElementById('vehicle-count');
 
     try {
-      // Intentar primero con rutas relativas (funciona en producción y desarrollo)
       let apiUrl = '/api/importaciones';
-      console.log('Fetching vehicles from:', apiUrl);
-      
       const response = await fetch(apiUrl, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin'
       });
       
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
+      if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
 
       const data = await response.json();
-      console.log('Response data:', data);
-
-      if (!data.success) {
-        throw new Error(data.message || 'Error al cargar vehículos');
-      }
+      if (!data.success) throw new Error(data.message || 'Error al cargar vehículos');
 
       if (loadingEl) loadingEl.classList.add('hidden');
       if (gridEl) gridEl.classList.remove('hidden');
 
-      const vehicles = data.vehicles || [];
-      console.log(`Total vehicles received: ${vehicles.length}`);
-      console.log('First vehicle object:', JSON.stringify(vehicles[0], null, 2));
-      console.log('Second vehicle object:', JSON.stringify(vehicles[1], null, 2));
+      allVehicles = data.vehicles || [];
       
-      if (countEl) countEl.textContent = vehicles.length.toString();
-
-      if (containerEl && vehicles.length > 0) {
-        // Limpiar el contenedor primero
-        containerEl.innerHTML = '';
-        
-        // Agregar cada vehículo individualmente
-        vehicles.forEach((vehicle: any, index: number) => {
-          console.log(`Adding vehicle ${index + 1}:`, vehicle.title);
-          console.log('Vehicle data:', JSON.stringify(vehicle, null, 2));
-          const cardHTML = createVehicleCard(vehicle);
-          const cardElement = document.createElement('div');
-          cardElement.innerHTML = cardHTML;
-          containerEl.appendChild(cardElement.firstElementChild!);
-        });
-        
-        console.log('All vehicles added to DOM');
-      } else if (containerEl) {
-        containerEl.innerHTML = `
-          <div class="col-span-full text-center py-12">
-            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <h3 class="mt-2 text-sm font-medium text-gray-900">No hay vehículos disponibles</h3>
-            <p class="mt-1 text-sm text-gray-500">No se encontraron vehículos en este momento.</p>
-          </div>
-        `;
-      }
+      populateFilters(allVehicles);
+      renderVehicles(allVehicles);
+      
     } catch (error: any) {
       console.error('Error al cargar vehículos:', error);
-      
       if (loadingEl) loadingEl.classList.add('hidden');
       if (errorEl) {
         errorEl.classList.remove('hidden');
         const errorMessageEl = document.getElementById('error-message');
-        if (errorMessageEl) {
-          let errorMessage = error.message || 'Ocurrió un error inesperado';
-          
-          // Mejorar mensaje de error según el tipo
-          if (error instanceof TypeError && error.message.includes('fetch')) {
-            errorMessage = '❌ No se puede conectar con el servidor. Verifica que el backend esté corriendo.';
-          } else if (error.message.includes('Error 5')) {
-            errorMessage = '❌ Error en el servidor (500). Por favor intenta más tarde.';
-          } else if (error.message.includes('Error 4')) {
-            errorMessage = '❌ Recurso no encontrado (404). Verifica la configuración de la API.';
-          }
-          
-          errorMessageEl.textContent = errorMessage;
-          console.error('Full error details:', error);
-        }
+        if (errorMessageEl) errorMessageEl.textContent = error.message;
       }
     }
   }
 
   // Event listeners
   document.getElementById('quote-form')?.addEventListener('submit', submitQuoteRequest);
+  document.getElementById('search-input')?.addEventListener('input', applyFilters);
+  document.getElementById('make-filter')?.addEventListener('change', applyFilters);
+  document.getElementById('year-filter')?.addEventListener('change', applyFilters);
+  document.getElementById('sort-filter')?.addEventListener('change', applyFilters);
 
   // Cerrar modal al hacer clic fuera de él
   document.getElementById('quote-modal')?.addEventListener('click', function(e) {
-    if (e.target === this) {
-      (window as any).closeQuoteModal();
-    }
+    if (e.target === this) (window as any).closeQuoteModal();
   });
 
   // Inicializar

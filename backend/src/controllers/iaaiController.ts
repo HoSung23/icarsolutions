@@ -38,7 +38,7 @@ export const getIaaiVehicles = async (req: Request, res: Response) => {
           'Accept-Language': 'en-US,en;q=0.5',
           'Referer': 'https://www.iaai.com/'
         },
-        timeout: 10000
+        timeout: 15000
       });
 
       const $ = cheerio.load(response.data);
@@ -52,20 +52,30 @@ export const getIaaiVehicles = async (req: Request, res: Response) => {
           // Extraer información básica
           const titleElement = $row.find('.td-year-make-model a');
           const title = titleElement.text().trim();
-          const detailUrl = 'https://www.iaai.com' + titleElement.attr('href');
-          const id = detailUrl.split('/').pop() || `vehicle-${index}`;
+          const href = titleElement.attr('href') || '';
+          const detailUrl = href.startsWith('http') ? href : 'https://www.iaai.com' + href;
+          const id = detailUrl.split('/').pop()?.split('~')[0] || `vehicle-${index}`;
 
-          // Extraer imagen
+          // Extraer imagen con más selectores
           const imageUrl = $row.find('.td-image img').attr('src') ||
-            $row.find('.td-image img').attr('data-src') || '';
+            $row.find('.td-image img').attr('data-src') ||
+            $row.find('img').first().attr('src') || '';
 
           // Extraer otros datos
-          const vin = $row.find('.td-vin').text().trim() || 'N/A';
-          const odometer = $row.find('.td-odometer').text().trim() || 'N/A';
-          const price = $row.find('.td-current-bid, .td-buy-now-price').text().replace(/[^0-9,]/g, '').trim() || '0';
-          const condition = $row.find('.td-damage').text().trim() || 'Unknown';
+          const vin = $row.find('.td-vin').text().replace('VIN:', '').trim() || 'N/A';
+          const odometer = $row.find('.td-odometer').text().replace('Odometer:', '').trim() || 'N/A';
+
+          // Precio (pueden ser varios selectores)
+          const priceRaw = $row.find('.td-current-bid, .td-buy-now-price, .td-price').text();
+          const price = priceRaw.replace(/[^0-9,]/g, '').trim() || '0';
+
+          const condition = $row.find('.td-damage, .td-condition').text().trim() || 'Unknown';
           const location = $row.find('.td-location').text().trim() || 'Unknown';
           const auctionDate = $row.find('.td-sale-date').text().trim() || 'TBD';
+
+          // Intentar extraer motor y transmisión si están en la fila (a veces en tooltips o spans)
+          const engine = $row.find('.td-engine').text().trim() || 'N/A';
+          const transmission = $row.find('.td-transmission').text().trim() || 'N/A';
 
           // Parsear título para obtener año, marca y modelo
           const titleParts = title.split(' ');
@@ -89,10 +99,10 @@ export const getIaaiVehicles = async (req: Request, res: Response) => {
               auctionDate,
               imageUrl: imageUrl ? `/api/importaciones/proxy-image?url=${encodeURIComponent(imageUrl)}` : '',
               detailUrl,
-              engine: 'N/A',
+              engine,
               fuel: 'N/A',
               cylinders: 'N/A',
-              transmission: 'N/A'
+              transmission
             });
           }
         } catch (err) {
